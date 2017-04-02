@@ -1,3 +1,9 @@
+# This is a fork of the library developed by Greg Hegwill (more info below)
+# It adds a support for numbers and arrays, as it only supported string as
+# input before. Now instead of throwing an error, an input of kind "12 million"
+# will result in 12000000 (same as "twelve million")
+# Next ToDo: Add multilingual support
+
 # This library is a simple implementation of a function to convert textual
 # numbers written in English into their integer representations.
 #
@@ -75,23 +81,32 @@ class NumberException(Exception):
         Exception.__init__(self, msg)
 
 def text2num(s):
-    a = re.split(r"[\s-]+", s)
-    n = 0
-    g = 0
-    for w in a:
-        x = Small.get(w, None)
-        if x is not None:
-            g += x
-        elif w == "hundred" and g != 0:
-            g *= 100
-        else:
-            x = Magnitude.get(w, None)
-            if x is not None:
-                n += g * x
-                g = 0
-            else:
-                raise NumberException("Unknown number: "+w)
-    return n + g
+	a = []
+	if not type(s) is list:
+		s = [s]
+	for s_item in s:
+		a += re.split(r"[\s-]+", str(s_item))
+		
+	n = 0
+	g = 0
+	for w in a:
+		try:
+			x = int(w)
+			g += x
+		except:
+			x = Small.get(w, None)
+			if x is not None:
+				g += x
+			elif w == "hundred" and g != 0:
+				g *= 100
+			else:
+				x = Magnitude.get(w, None)
+				if x is not None:
+					n += g * x
+					g = 0
+				else:
+					raise NumberException("Unknown number: "+w)
+	return n + g
     
 if __name__ == "__main__":
     assert 1 == text2num("one")
@@ -104,3 +119,5 @@ if __name__ == "__main__":
     assert 6400005 == text2num("six million four hundred thousand five")
     assert 123456789012 == text2num("one hundred twenty three billion four hundred fifty six million seven hundred eighty nine thousand twelve")
     assert 4000000000000000000000000000000000 == text2num("four decillion")
+	assert 32000 == text2num("32 thousand")
+    assert 1000000 == text2num(["one", "million"])
